@@ -1,8 +1,7 @@
 import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
-
-const cancelKeyboard = new InlineKeyboard().text("❌ Отменить", "cancel");
+import { msg } from "../../utils/messages.js";
 
 /**
  * Sends the completed application to the admin chat.
@@ -36,8 +35,8 @@ async function waitForTextOrCancel(conversation) {
     if (nextCtx.callbackQuery?.data === "cancel") {
       await nextCtx.answerCallbackQuery();
       await nextCtx.reply(
-        `Заявка отменена. Ничего страшного — вы можете начать новую заявку в любое время.`,
-        { reply_markup: new InlineKeyboard().text("📋 Оставить заявку", "apply") }
+        msg.apply.cancelled,
+        { reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply") }
       );
       return null;
     }
@@ -47,8 +46,8 @@ async function waitForTextOrCancel(conversation) {
       const text = nextCtx.message.text;
       if (text === "/cancel" || text.startsWith("/cancel@")) {
         await nextCtx.reply(
-          `Заявка отменена. Ничего страшного — вы можете начать новую заявку в любое время.`,
-          { reply_markup: new InlineKeyboard().text("📋 Оставить заявку", "apply") }
+          msg.apply.cancelled,
+          { reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply") }
         );
         return null;
       }
@@ -67,18 +66,13 @@ async function waitForTextOrCancel(conversation) {
  * @param {import("grammy").Context} ctx
  */
 export async function applyConversation(conversation, ctx) {
-  await ctx.reply(
-    `Давайте свяжем вас с компанией! Это займёт всего минуту.\n\n` +
-    `Для начала, как вас зовут?`,
-    { reply_markup: cancelKeyboard }
-  );
+  const cancelKeyboard = new InlineKeyboard().text(msg.btn.cancel, "cancel");
+
+  await ctx.reply(msg.apply.askName, { reply_markup: cancelKeyboard });
   const name = await waitForTextOrCancel(conversation);
   if (name === null) return;
 
-  await ctx.reply(
-    `Приятно познакомиться, ${name}! Теперь опишите ваш запрос — можно подробно.`,
-    { reply_markup: cancelKeyboard }
-  );
+  await ctx.reply(msg.apply.askRequest(name), { reply_markup: cancelKeyboard });
   const request = await waitForTextOrCancel(conversation);
   if (request === null) return;
 
@@ -92,9 +86,7 @@ export async function applyConversation(conversation, ctx) {
     );
   } catch (err) {
     console.error("Failed to notify admin:", err);
-    await ctx.reply(
-      `Заявка принята, но произошла техническая ошибка. Мы всё равно постараемся с вами связаться.`
-    );
+    await ctx.reply(msg.apply.adminError);
     return;
   }
 
@@ -106,8 +98,7 @@ export async function applyConversation(conversation, ctx) {
   });
 
   await ctx.reply(
-    `Готово, ${name}! ✅ Ваша заявка успешно отправлена.\n\n` +
-    `Компания получила уведомление и свяжется с вами в ближайшее время.`,
-    { reply_markup: new InlineKeyboard().text("📊 Статус заявки", "status") }
+    msg.apply.success(name),
+    { reply_markup: new InlineKeyboard().text(msg.btn.status, "status") }
   );
 }

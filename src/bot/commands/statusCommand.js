@@ -1,4 +1,5 @@
 import { InlineKeyboard } from "grammy";
+import { msg } from "../../utils/messages.js";
 
 /**
  * Handles the /status command and "status" callback query.
@@ -7,12 +8,7 @@ import { InlineKeyboard } from "grammy";
  * @param {import("grammy").Context} ctx
  */
 export async function statusCommand(ctx) {
-  const keyboard = new InlineKeyboard().text("📋 Оставить заявку", "apply");
+  const keyboard = new InlineKeyboard().text(msg.btn.apply, "apply");
 
-  await ctx.reply(
-    `Ваша заявка получена и передана в компанию. ` +
-    `С вами свяжутся напрямую в ближайшее время.\n\n` +
-    `Ещё не отправляли заявку? Нажмите кнопку ниже.`,
-    { reply_markup: keyboard }
-  );
+  await ctx.reply(msg.status.body, { reply_markup: keyboard });
 }

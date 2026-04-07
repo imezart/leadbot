@@ -1,4 +1,5 @@
 import { InlineKeyboard } from "grammy";
+import { msg } from "../../utils/messages.js";
 
 /**
  * Handles the /help command and "help" callback query.
@@ -8,15 +9,8 @@ import { InlineKeyboard } from "grammy";
  */
 export async function helpCommand(ctx) {
   const keyboard = new InlineKeyboard()
-    .text("📋 Оставить заявку", "apply")
-    .text("📊 Статус заявки", "status");
+    .text(msg.btn.apply, "apply")
+    .text(msg.btn.status, "status");
 
-  await ctx.reply(
-    `Вот всё, что я умею:\n\n` +
-    `📋 Оставить заявку — отправить новую заявку\n` +
-    `📊 Статус заявки — проверить, что заявка получена\n` +
-    `❓ Помощь — показать этот список\n\n` +
-    `Хотите связаться? Нажмите кнопку ниже — и компания ответит вам.`,
-    { reply_markup: keyboard }
-  );
+  await ctx.reply(msg.help.body, { reply_markup: keyboard });
 }

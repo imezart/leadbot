@@ -1,4 +1,5 @@
 import { InlineKeyboard } from "grammy";
+import { msg } from "../../utils/messages.js";
 
 /**
  * Handles the /start command.
@@ -7,16 +8,11 @@ import { InlineKeyboard } from "grammy";
  * @param {import("grammy").CommandContext<import("grammy").Context>} ctx
  */
 export async function startCommand(ctx) {
-  const firstName = ctx.from?.first_name ?? "там";
+  const firstName = ctx.from?.first_name ?? msg.start.nameFallback;
   const keyboard = new InlineKeyboard()
-    .text("📋 Оставить заявку", "apply").row()
-    .text("📊 Статус заявки", "status").row()
-    .text("❓ Помощь", "help");
+    .text(msg.btn.apply, "apply").row()
+    .text(msg.btn.status, "status").row()
+    .text(msg.btn.help, "help");
 
-  await ctx.reply(
-    `Привет, ${firstName}! 👋 Добро пожаловать в LeadBot.\n\n` +
-    `Я помогаю малому бизнесу собирать заявки прямо в Telegram. ` +
-    `Выберите действие ниже, чтобы начать.`,
-    { reply_markup: keyboard }
-  );
+  await ctx.reply(msg.start.welcome(firstName), { reply_markup: keyboard });
 }
