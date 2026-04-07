@@ -29,6 +29,20 @@ export function buildBookingKeyboard() {
 }
 
 /**
+ * Builds a tg:// URL inline button that opens the client's chat with
+ * pre-filled message text. Returns undefined when username is unknown.
+ *
+ * @param {string|null|undefined} username  Telegram username (without @).
+ * @param {string} templateText             Message to pre-fill.
+ * @returns {InlineKeyboard|undefined}
+ */
+export function buildAdminReplyButton(username, templateText) {
+  if (!username) return undefined;
+  const url = `tg://resolve?domain=${username}&text=${encodeURIComponent(templateText)}`;
+  return new InlineKeyboard().url(`💬 Написать @${username}`, url);
+}
+
+/**
  * Reusable confirmation keyboard shown after completing a booking action.
  *
  * @returns {InlineKeyboard}
@@ -61,14 +75,13 @@ export async function handleTelegramContact(ctx) {
     ? `Здравствуйте! Вы интересовались услугой ${serviceName}. Готовы записать вас на удобное время. Когда вам удобно?`
     : `Здравствуйте! Вы хотели записаться к нам. Готовы помочь — когда вам удобно?`;
 
+  const adminButton = buildAdminReplyButton(username, replyTemplate);
+
   try {
     await ctx.api.sendMessage(
       ADMIN_CHAT_ID,
-      `💬 Клиент хочет записаться через Telegram\n\nКлиент: ${userRef}${serviceInfo}`
-    );
-    await ctx.api.sendMessage(
-      ADMIN_CHAT_ID,
-      `📋 Шаблон ответа клиенту ${userRef}:\n${replyTemplate}`
+      `💬 Клиент хочет записаться через Telegram\n\nКлиент: ${userRef}${serviceInfo}`,
+      adminButton ? { reply_markup: adminButton } : {}
     );
   } catch (err) {
     console.error("Failed to notify admin (bk_tg):", err);

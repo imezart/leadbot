@@ -2,6 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
 import { msg } from "../../utils/messages.js";
+import { buildAdminReplyButton } from "../handlers/bookingHandler.js";
 
 /**
  * Conversation that handles the "call me back" contact method.
@@ -58,13 +59,21 @@ export async function callConversation(conversation, ctx) {
     }
   }
 
-  const userRef = ctx.from?.username ? `@${ctx.from.username}` : `ID ${ctx.from?.id ?? 0}`;
+  const username   = ctx.from?.username ?? null;
+  const userRef    = username ? `@${username}` : `ID ${ctx.from?.id ?? 0}`;
   const serviceInfo = pendingService ? `\nУслуга: ${pendingService}` : "";
+
+  const replyTemplate = pendingService
+    ? `Здравствуйте! Вы интересовались услугой ${pendingService} и оставили номер для обратного звонка. Готовы записать вас на удобное время. Когда вам удобно?`
+    : `Здравствуйте! Вы оставили номер телефона для обратного звонка. Готовы записать вас на удобное время. Когда вам удобно?`;
+
+  const adminButton = buildAdminReplyButton(username, replyTemplate);
 
   try {
     await ctx.api.sendMessage(
       ADMIN_CHAT_ID,
-      `📞 Запрос на обратный звонок:\n\nТелефон: ${phone}${serviceInfo}\nОт: ${userRef}`
+      `📞 Запрос на обратный звонок:\n\nТелефон: ${phone}${serviceInfo}\nОт: ${userRef}`,
+      adminButton ? { reply_markup: adminButton } : {}
     );
   } catch (err) {
     console.error("Failed to notify admin (callConversation):", err);

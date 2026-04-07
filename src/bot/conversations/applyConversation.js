@@ -2,7 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
 import { msg } from "../../utils/messages.js";
-import { buildConfirmationKeyboard } from "../handlers/bookingHandler.js";
+import { buildConfirmationKeyboard, buildAdminReplyButton } from "../handlers/bookingHandler.js";
 
 /**
  * Sends the completed application to the admin chat.
@@ -13,11 +13,12 @@ import { buildConfirmationKeyboard } from "../handlers/bookingHandler.js";
  * @param {number} userId
  * @param {string} username
  */
-async function notifyAdmin(api, name, request, userId, username) {
+async function notifyAdmin(api, name, request, userId, username, replyMarkup) {
   const userRef = username ? `@${username}` : `ID ${userId}`;
   await api.sendMessage(
     ADMIN_CHAT_ID,
-    `New lead:\n\nName: ${name}\nMessage: ${request}\nFrom: ${userRef}`
+    `New lead:\n\nName: ${name}\nMessage: ${request}\nFrom: ${userRef}`,
+    replyMarkup ? { reply_markup: replyMarkup } : {}
   );
 }
 
@@ -96,13 +97,17 @@ export async function applyConversation(conversation, ctx) {
     if (request === null) return;
   }
 
+  const replyTemplate = `Здравствуйте, ${name}! Мы получили вашу заявку. Готовы уточнить детали и записать вас на удобное время.`;
+  const adminButton = buildAdminReplyButton(ctx.from?.username, replyTemplate);
+
   try {
     await notifyAdmin(
       ctx.api,
       name,
       request,
       ctx.from?.id ?? 0,
-      ctx.from?.username
+      ctx.from?.username,
+      adminButton
     );
   } catch (err) {
     console.error("Failed to notify admin:", err);
