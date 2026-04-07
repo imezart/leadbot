@@ -72,7 +72,8 @@ export async function showServiceDetail(ctx, catId, svcId) {
 
   const keyboard = new InlineKeyboard()
     .text(BTN_APPLY, `svc_apply:${catId}:${svcId}`).row()
-    .text(BTN_BACK_SERVICES, `cat:${catId}`);
+    .text(BTN_BACK_SERVICES, `cat:${catId}`)
+    .text("⬅️ К услугам", "services");
 
   await ctx.editMessageText(text, {
     reply_markup: keyboard,

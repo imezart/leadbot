@@ -2,6 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
 import { msg } from "../../utils/messages.js";
+import { buildConfirmationKeyboard } from "../handlers/bookingHandler.js";
 
 /**
  * Sends the completed application to the admin chat.
@@ -116,8 +117,5 @@ export async function applyConversation(conversation, ctx) {
     request,
   });
 
-  await ctx.reply(
-    msg.apply.success(name),
-    { reply_markup: new InlineKeyboard().text(msg.btn.status, "status") }
-  );
+  await ctx.reply(msg.apply.success(name), { reply_markup: buildConfirmationKeyboard() });
 }

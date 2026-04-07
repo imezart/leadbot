@@ -9,7 +9,7 @@ import { statsCommand } from "./src/bot/commands/statsCommand.js";
 import { applyConversation } from "./src/bot/conversations/applyConversation.js";
 import { callConversation } from "./src/bot/conversations/callConversation.js";
 import { showCategories, showServices, showServiceDetail } from "./src/bot/handlers/servicesHandler.js";
-import { buildBookingMessage, buildBookingKeyboard } from "./src/bot/handlers/bookingHandler.js";
+import { buildBookingMessage, buildBookingKeyboard, handleTelegramContact } from "./src/bot/handlers/bookingHandler.js";
 import { getServiceById } from "./src/data/services.js";
 import { msg } from "./src/utils/messages.js";
 
@@ -114,19 +114,10 @@ bot.callbackQuery("bk_call", async (ctx) => {
   await ctx.conversation.enter("callConversation");
 });
 
-// Contact method: write in Telegram.
+// Contact method: write in Telegram — notify admin, save lead, confirm to client.
 bot.callbackQuery("bk_tg", async (ctx) => {
   await ctx.answerCallbackQuery();
-  ctx.session.pendingService = null;
-  await ctx.editMessageText(
-    `💬 *Напишите нам в Telegram*\n\n` +
-    `Наш аккаунт: @dentabotdemo\n\n` +
-    `Мы ответим в течение нескольких минут.`,
-    {
-      reply_markup: new InlineKeyboard().text("⬅️ Назад в меню", "main_menu"),
-      parse_mode: "Markdown",
-    }
-  );
+  await handleTelegramContact(ctx);
 });
 
 // Contact method: fill in the text form (existing apply conversation).
