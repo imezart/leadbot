@@ -1,5 +1,8 @@
+import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
+
+const cancelKeyboard = new InlineKeyboard().text("❌ Отменить", "cancel");
 
 /**
  * Sends the completed application to the admin chat.
@@ -20,21 +23,40 @@ async function notifyAdmin(api, name, request, userId, username) {
 
 /**
  * Waits for the next text message and returns its text.
- * Returns null and sends a cancellation reply if the user types /cancel.
+ * Returns null if the user cancels via button or /cancel command.
  *
  * @param {import("@grammyjs/conversations").Conversation} conversation
  * @returns {Promise<string|null>}
  */
 async function waitForTextOrCancel(conversation) {
-  const nextCtx = await conversation.waitFor("message:text");
-  const text = nextCtx.message.text;
-  if (text === "/cancel" || text.startsWith("/cancel@")) {
-    await nextCtx.reply(
-      `Заявка отменена. Ничего страшного — вы можете начать новую в любое время с помощью /apply.`
-    );
-    return null;
+  while (true) {
+    const nextCtx = await conversation.wait();
+
+    // Handle cancel button
+    if (nextCtx.callbackQuery?.data === "cancel") {
+      await nextCtx.answerCallbackQuery();
+      await nextCtx.reply(
+        `Заявка отменена. Ничего страшного — вы можете начать новую заявку в любое время.`,
+        { reply_markup: new InlineKeyboard().text("📋 Оставить заявку", "apply") }
+      );
+      return null;
+    }
+
+    // Handle text message
+    if (nextCtx.message?.text) {
+      const text = nextCtx.message.text;
+      if (text === "/cancel" || text.startsWith("/cancel@")) {
+        await nextCtx.reply(
+          `Заявка отменена. Ничего страшного — вы можете начать новую заявку в любое время.`,
+          { reply_markup: new InlineKeyboard().text("📋 Оставить заявку", "apply") }
+        );
+        return null;
+      }
+      return text;
+    }
+
+    // Ignore other update types and keep waiting
   }
-  return text;
 }
 
 /**
@@ -47,13 +69,15 @@ async function waitForTextOrCancel(conversation) {
 export async function applyConversation(conversation, ctx) {
   await ctx.reply(
     `Давайте свяжем вас с компанией! Это займёт всего минуту.\n\n` +
-    `Для начала, как вас зовут? (Введите /cancel в любой момент, чтобы отменить.)`
+    `Для начала, как вас зовут?`,
+    { reply_markup: cancelKeyboard }
   );
   const name = await waitForTextOrCancel(conversation);
   if (name === null) return;
 
   await ctx.reply(
-    `Приятно познакомиться, ${name}! Теперь опишите ваш запрос — можно подробно.`
+    `Приятно познакомиться, ${name}! Теперь опишите ваш запрос — можно подробно.`,
+    { reply_markup: cancelKeyboard }
   );
   const request = await waitForTextOrCancel(conversation);
   if (request === null) return;
@@ -83,7 +107,7 @@ export async function applyConversation(conversation, ctx) {
 
   await ctx.reply(
     `Готово, ${name}! ✅ Ваша заявка успешно отправлена.\n\n` +
-    `Компания получила уведомление и свяжется с вами в ближайшее время. ` +
-    `Используйте /status в любое время, чтобы подтвердить отправку.`
+    `Компания получила уведомление и свяжется с вами в ближайшее время.`,
+    { reply_markup: new InlineKeyboard().text("📊 Статус заявки", "status") }
   );
 }

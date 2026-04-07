@@ -1,17 +1,22 @@
+import { InlineKeyboard } from "grammy";
+
 /**
- * Handles the /help command.
- * Lists all available bot commands.
+ * Handles the /help command and "help" callback query.
+ * Lists all available bot actions.
  *
- * @param {import("grammy").CommandContext<import("grammy").Context>} ctx
+ * @param {import("grammy").Context} ctx
  */
 export async function helpCommand(ctx) {
+  const keyboard = new InlineKeyboard()
+    .text("📋 Оставить заявку", "apply")
+    .text("📊 Статус заявки", "status");
+
   await ctx.reply(
     `Вот всё, что я умею:\n\n` +
-    `/start — приветственное сообщение\n` +
-    `/apply — отправить новую заявку\n` +
-    `/status — проверить, что заявка получена\n` +
-    `/cancel — отменить заявку в процессе заполнения\n` +
-    `/help — показать этот список\n\n` +
-    `Хотите связаться? Используйте /apply — и компания ответит вам.`
+    `📋 Оставить заявку — отправить новую заявку\n` +
+    `📊 Статус заявки — проверить, что заявка получена\n` +
+    `❓ Помощь — показать этот список\n\n` +
+    `Хотите связаться? Нажмите кнопку ниже — и компания ответит вам.`,
+    { reply_markup: keyboard }
   );
 }

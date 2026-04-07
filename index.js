@@ -29,6 +29,22 @@ bot.command("cancel", cancelCommand);
 bot.command("status", statusCommand);
 bot.command("stats", statsCommand);
 
+// Register inline keyboard button handlers.
+bot.callbackQuery("apply", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.conversation.enter("applyConversation");
+});
+
+bot.callbackQuery("status", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await statusCommand(ctx);
+});
+
+bot.callbackQuery("help", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await helpCommand(ctx);
+});
+
 // Global error handler — prevents unhandled errors from crashing the process.
 bot.catch((err) => console.error("Bot error:", err));
 
