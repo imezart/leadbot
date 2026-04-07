@@ -29,7 +29,7 @@ async function waitForTextOrCancel(conversation) {
   const text = nextCtx.message.text;
   if (text.startsWith("/cancel")) {
     await nextCtx.reply(
-      `Your application has been cancelled. No worries — you can start a new one anytime with /apply.`
+      `Заявка отменена. Ничего страшного — вы можете начать новую в любое время с помощью /apply.`
     );
     return null;
   }
@@ -45,14 +45,14 @@ async function waitForTextOrCancel(conversation) {
  */
 export async function applyConversation(conversation, ctx) {
   await ctx.reply(
-    `Let's get you connected with the business! This will only take a moment.\n\n` +
-    `First, what's your name? (Type /cancel at any time to exit.)`
+    `Давайте свяжем вас с компанией! Это займёт всего минуту.\n\n` +
+    `Для начала, как вас зовут? (Введите /cancel в любой момент, чтобы отменить.)`
   );
   const name = await waitForTextOrCancel(conversation);
   if (name === null) return;
 
   await ctx.reply(
-    `Nice to meet you, ${name}! Now, please describe your request in as much detail as you'd like.`
+    `Приятно познакомиться, ${name}! Теперь опишите ваш запрос — можно подробно.`
   );
   const request = await waitForTextOrCancel(conversation);
   if (request === null) return;
@@ -66,8 +66,8 @@ export async function applyConversation(conversation, ctx) {
   );
 
   await ctx.reply(
-    `All done, ${name}! ✅ Your inquiry has been submitted successfully.\n\n` +
-    `The business has been notified and will get back to you as soon as possible. ` +
-    `Use /status anytime to confirm your submission.`
+    `Готово, ${name}! ✅ Ваша заявка успешно отправлена.\n\n` +
+    `Компания получила уведомление и свяжется с вами в ближайшее время. ` +
+    `Используйте /status в любое время, чтобы подтвердить отправку.`
   );
 }

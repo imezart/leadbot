@@ -6,8 +6,8 @@
  */
 export async function statusCommand(ctx) {
   await ctx.reply(
-    `Your inquiry has been received and forwarded to the business. ` +
-    `They will reach out to you directly as soon as possible.\n\n` +
-    `Haven't submitted yet? Use /apply to get started.`
+    `Ваша заявка получена и передана в компанию. ` +
+    `С вами свяжутся напрямую в ближайшее время.\n\n` +
+    `Ещё не отправляли заявку? Используйте /apply.`
   );
 }

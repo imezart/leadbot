@@ -5,14 +5,14 @@
  * @param {import("grammy").CommandContext<import("grammy").Context>} ctx
  */
 export async function startCommand(ctx) {
-  const firstName = ctx.from?.first_name ?? "there";
+  const firstName = ctx.from?.first_name ?? "там";
   await ctx.reply(
-    `Hi, ${firstName}! 👋 Welcome to LeadBot.\n\n` +
-    `I help small businesses collect and manage leads straight from Telegram. ` +
-    `Here's what I can do for you:\n\n` +
-    `/apply — submit your details to the business\n` +
-    `/status — check that your inquiry was received\n` +
-    `/help — see all available commands\n\n` +
-    `Ready to get started? Just tap a command above.`
+    `Привет, ${firstName}! 👋 Добро пожаловать в LeadBot.\n\n` +
+    `Я помогаю малому бизнесу собирать заявки прямо в Telegram. ` +
+    `Вот что я умею:\n\n` +
+    `/apply — отправить заявку\n` +
+    `/status — проверить, что заявка получена\n` +
+    `/help — список всех команд\n\n` +
+    `Готовы начать? Просто нажмите на команду выше.`
   );
 }

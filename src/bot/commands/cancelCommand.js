@@ -7,6 +7,6 @@
 export async function cancelCommand(ctx) {
   await ctx.conversation.exit();
   await ctx.reply(
-    `Your application has been cancelled. No worries — you can start a new one anytime with /apply.`
+    `Заявка отменена. Ничего страшного — вы можете начать новую в любое время с помощью /apply.`
   );
 }

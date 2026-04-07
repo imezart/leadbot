@@ -6,12 +6,12 @@
  */
 export async function helpCommand(ctx) {
   await ctx.reply(
-    `Here's everything I can help you with:\n\n` +
-    `/start — welcome message & quick overview\n` +
-    `/apply — submit a new request to our team\n` +
-    `/status — check that your request was received\n` +
-    `/cancel — cancel an application in progress\n` +
-    `/help — show this list\n\n` +
-    `Ready to connect? Use /apply and the business will get back to you.`
+    `Вот всё, что я умею:\n\n` +
+    `/start — приветственное сообщение\n` +
+    `/apply — отправить новую заявку\n` +
+    `/status — проверить, что заявка получена\n` +
+    `/cancel — отменить заявку в процессе заполнения\n` +
+    `/help — показать этот список\n\n` +
+    `Хотите связаться? Используйте /apply — и компания ответит вам.`
   );
 }
