@@ -11,8 +11,10 @@ node_modules/
 .vscode/
 .idea/
 
-# Claude Code internals
+# Claude Code internals — track commands, ignore everything else
 .claude/
+!.claude/commands/
+!.claude/commands/**
 
 # Placeholder files
 index.html

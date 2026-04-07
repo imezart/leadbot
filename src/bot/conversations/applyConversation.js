@@ -27,7 +27,7 @@ async function notifyAdmin(api, name, request, userId, username) {
 async function waitForTextOrCancel(conversation) {
   const nextCtx = await conversation.waitFor("message:text");
   const text = nextCtx.message.text;
-  if (text.startsWith("/cancel")) {
+  if (text === "/cancel" || text.startsWith("/cancel@")) {
     await nextCtx.reply(
       `Заявка отменена. Ничего страшного — вы можете начать новую в любое время с помощью /apply.`
     );
@@ -57,13 +57,21 @@ export async function applyConversation(conversation, ctx) {
   const request = await waitForTextOrCancel(conversation);
   if (request === null) return;
 
-  await notifyAdmin(
-    ctx.api,
-    name,
-    request,
-    ctx.from.id,
-    ctx.from.username
-  );
+  try {
+    await notifyAdmin(
+      ctx.api,
+      name,
+      request,
+      ctx.from?.id ?? 0,
+      ctx.from?.username
+    );
+  } catch (err) {
+    console.error("Failed to notify admin:", err);
+    await ctx.reply(
+      `Заявка принята, но произошла техническая ошибка. Мы всё равно постараемся с вами связаться.`
+    );
+    return;
+  }
 
   await ctx.reply(
     `Готово, ${name}! ✅ Ваша заявка успешно отправлена.\n\n` +
