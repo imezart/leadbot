@@ -53,6 +53,12 @@ export async function callConversation(conversation, ctx) {
       phone = text;
       break;
     }
+
+    // Any other callback query (navigation buttons etc.) — let normal handlers run.
+    if (nextCtx.callbackQuery) {
+      await nextCtx.answerCallbackQuery();
+      await conversation.skip();
+    }
   }
 
   const username = ctx.from?.username ?? null;

@@ -56,7 +56,11 @@ async function waitForTextOrCancel(conversation) {
       return text;
     }
 
-    // Ignore other update types and keep waiting
+    // Any other callback query (navigation buttons etc.) — let normal handlers run.
+    if (nextCtx.callbackQuery) {
+      await nextCtx.answerCallbackQuery();
+      await conversation.skip();
+    }
   }
 }
 
