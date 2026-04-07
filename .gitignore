@@ -11,6 +11,12 @@ node_modules/
 .vscode/
 .idea/
 
+# Claude Code internals
+.claude/
+
+# Placeholder files
+index.html
+
 # Logs
 *.log
 npm-debug.log*
