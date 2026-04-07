@@ -5,24 +5,23 @@ import { msg } from "../../utils/messages.js";
 import { buildAdminReplyButton } from "../handlers/bookingHandler.js";
 
 /**
- * Conversation that handles the "call me back" contact method.
+ * Conversation that handles the "📞 Перезвоните мне" contact method.
  * Asks for a phone number, notifies admin, and saves the lead.
  *
  * @param {import("@grammyjs/conversations").Conversation} conversation
  * @param {import("grammy").Context} ctx
  */
 export async function callConversation(conversation, ctx) {
-  // Read the pre-selected service once and cache for replays.
-  const pendingService = await conversation.external(() => {
-    const svc = ctx.session.pendingService ?? null;
-    if (svc) ctx.session.pendingService = null;
-    return svc;
-  });
+  // Read and clear pendingService synchronously before the first wait().
+  // This runs in the same middleware cycle as conversation.enter(), so the
+  // session value is always available here without conversation.external().
+  const pendingService = ctx.session.pendingService ?? null;
+  ctx.session.pendingService = null;
 
   const cancelKeyboard = new InlineKeyboard().text(msg.btn.cancel, "cancel");
 
   await ctx.reply(
-    "Введите ваш номер телефона — мы свяжемся с вами в ближайшее время.",
+    "Введите ваш номер телефона в формате +48XXXXXXXXX — мы свяжемся с вами в ближайшее время.",
     { reply_markup: cancelKeyboard }
   );
 
@@ -32,14 +31,12 @@ export async function callConversation(conversation, ctx) {
 
     if (nextCtx.callbackQuery?.data === "cancel") {
       await nextCtx.answerCallbackQuery();
-      await nextCtx.reply(
-        msg.apply.cancelled,
-        { reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply") }
-      );
+      await nextCtx.reply(msg.apply.cancelled, {
+        reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply"),
+      });
       return;
     }
 
-    // Accept a Telegram contact share.
     if (nextCtx.message?.contact?.phone_number) {
       phone = nextCtx.message.contact.phone_number;
       break;
@@ -48,10 +45,9 @@ export async function callConversation(conversation, ctx) {
     if (nextCtx.message?.text) {
       const text = nextCtx.message.text;
       if (text === "/cancel" || text.startsWith("/cancel@")) {
-        await nextCtx.reply(
-          msg.apply.cancelled,
-          { reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply") }
-        );
+        await nextCtx.reply(msg.apply.cancelled, {
+          reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply"),
+        });
         return;
       }
       phone = text;
@@ -59,9 +55,8 @@ export async function callConversation(conversation, ctx) {
     }
   }
 
-  const username   = ctx.from?.username ?? null;
-  const userRef    = username ? `@${username}` : `ID ${ctx.from?.id ?? 0}`;
-  const serviceInfo = pendingService ? `\nУслуга: ${pendingService}` : "";
+  const username = ctx.from?.username ?? null;
+  const userRef  = username ? `@${username}` : `ID ${ctx.from?.id ?? 0}`;
 
   const replyTemplate = pendingService
     ? `Здравствуйте! Вы интересовались услугой ${pendingService} и оставили номер для обратного звонка. Готовы записать вас на удобное время. Когда вам удобно?`
@@ -72,7 +67,9 @@ export async function callConversation(conversation, ctx) {
   try {
     await ctx.api.sendMessage(
       ADMIN_CHAT_ID,
-      `📞 Запрос на обратный звонок:\n\nТелефон: ${phone}${serviceInfo}\nОт: ${userRef}`,
+      `📞 Запрос на обратный звонок:\n\nКлиент: ${userRef}` +
+      (pendingService ? `\nУслуга: ${pendingService}` : "") +
+      `\nТелефон: ${phone}`,
       adminButton ? { reply_markup: adminButton } : {}
     );
   } catch (err) {
@@ -87,7 +84,7 @@ export async function callConversation(conversation, ctx) {
   });
 
   await ctx.reply(
-    `✅ Спасибо! Мы свяжемся с вами на номер *${phone}* в ближайшее время.`,
+    `Спасибо! Мы свяжемся с вами по номеру *${phone}* в ближайшее время.`,
     {
       parse_mode: "Markdown",
       reply_markup: new InlineKeyboard().text("⬅️ К услугам", "services"),
