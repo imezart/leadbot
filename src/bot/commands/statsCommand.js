@@ -1,4 +1,5 @@
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
+import { getLeadCounts } from "../../utils/leadStorage.js";
 
 /**
  * /stats command — show lead counts for today, this week, and all time.
@@ -13,10 +14,7 @@ export async function statsCommand(ctx) {
       return;
     }
 
-    // TODO: replace with real counts from your storage layer
-    const today = 0;
-    const thisWeek = 0;
-    const total = 0;
+    const { today, thisWeek, total } = await getLeadCounts();
 
     await ctx.reply(
       `Lead statistics:\n\n` +

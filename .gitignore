@@ -16,6 +16,9 @@ node_modules/
 !.claude/commands/
 !.claude/commands/**
 
+# Lead data — runtime file, do not commit
+src/data/leads.json
+
 # Placeholder files
 index.html
 

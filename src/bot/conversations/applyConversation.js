@@ -1,4 +1,5 @@
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
+import { saveLead } from "../../utils/leadStorage.js";
 
 /**
  * Sends the completed application to the admin chat.
@@ -72,6 +73,13 @@ export async function applyConversation(conversation, ctx) {
     );
     return;
   }
+
+  await saveLead({
+    name,
+    username: ctx.from?.username,
+    userId: ctx.from?.id ?? 0,
+    request,
+  });
 
   await ctx.reply(
     `Готово, ${name}! ✅ Ваша заявка успешно отправлена.\n\n` +
