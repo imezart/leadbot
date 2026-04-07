@@ -2,7 +2,6 @@ import { InlineKeyboard } from "grammy";
 import { ADMIN_CHAT_ID } from "../../utils/config.js";
 import { saveLead } from "../../utils/leadStorage.js";
 import { msg } from "../../utils/messages.js";
-import { buildConfirmationKeyboard } from "../handlers/bookingHandler.js";
 
 /**
  * Conversation that handles the "call me back" contact method.
@@ -22,7 +21,7 @@ export async function callConversation(conversation, ctx) {
   const cancelKeyboard = new InlineKeyboard().text(msg.btn.cancel, "cancel");
 
   await ctx.reply(
-    "📞 Введите ваш номер телефона — мы перезвоним вам в ближайшее время:",
+    "Введите ваш номер телефона — мы свяжемся с вами в ближайшее время.",
     { reply_markup: cancelKeyboard }
   );
 
@@ -79,7 +78,10 @@ export async function callConversation(conversation, ctx) {
   });
 
   await ctx.reply(
-    `✅ Спасибо! Мы перезвоним вам на номер *${phone}* в ближайшее время.`,
-    { parse_mode: "Markdown", reply_markup: buildConfirmationKeyboard() }
+    `✅ Спасибо! Мы свяжемся с вами на номер *${phone}* в ближайшее время.`,
+    {
+      parse_mode: "Markdown",
+      reply_markup: new InlineKeyboard().text("⬅️ К услугам", "services"),
+    }
   );
 }

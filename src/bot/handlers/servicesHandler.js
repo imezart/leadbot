@@ -2,7 +2,6 @@ import { InlineKeyboard } from "grammy";
 import { categories, getCategoryById, getServiceById } from "../../data/services.js";
 
 const BTN_BACK_CATEGORIES = "⬅️ Назад к категориям";
-const BTN_BACK_SERVICES   = "⬅️ Назад к услугам";
 const BTN_APPLY           = "📋 Записаться на приём";
 
 /**
@@ -72,7 +71,6 @@ export async function showServiceDetail(ctx, catId, svcId) {
 
   const keyboard = new InlineKeyboard()
     .text(BTN_APPLY, `svc_apply:${catId}:${svcId}`).row()
-    .text(BTN_BACK_SERVICES, `cat:${catId}`)
     .text("⬅️ К услугам", "services");
 
   await ctx.editMessageText(text, {

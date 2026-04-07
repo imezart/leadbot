@@ -58,24 +58,17 @@ export async function handleTelegramContact(ctx) {
   const serviceInfo = serviceName ? `\nУслуга: ${serviceName}` : "";
 
   const replyTemplate = serviceName
-    ? `Здравствуйте! Вы интересовались услугой «${serviceName}». Хотите записаться? Уточните удобное время.`
-    : `Здравствуйте! Вы хотели записаться к нам. Уточните, пожалуйста, удобное время.`;
-
-  // Build admin notification with an optional "open chat" button.
-  const adminText =
-    `💬 Клиент хочет записаться через Telegram\n\n` +
-    `Клиент: ${userRef}${serviceInfo}\n\n` +
-    `Шаблон ответа:\n${replyTemplate}`;
-
-  const adminKeyboard = username
-    ? new InlineKeyboard().url(`💬 Написать ${userRef}`, `https://t.me/${username}`)
-    : undefined;
+    ? `Здравствуйте! Вы интересовались услугой ${serviceName}. Готовы записать вас на удобное время. Когда вам удобно?`
+    : `Здравствуйте! Вы хотели записаться к нам. Готовы помочь — когда вам удобно?`;
 
   try {
     await ctx.api.sendMessage(
       ADMIN_CHAT_ID,
-      adminText,
-      adminKeyboard ? { reply_markup: adminKeyboard } : {}
+      `💬 Клиент хочет записаться через Telegram\n\nКлиент: ${userRef}${serviceInfo}`
+    );
+    await ctx.api.sendMessage(
+      ADMIN_CHAT_ID,
+      `📋 Шаблон ответа клиенту ${userRef}:\n${replyTemplate}`
     );
   } catch (err) {
     console.error("Failed to notify admin (bk_tg):", err);
