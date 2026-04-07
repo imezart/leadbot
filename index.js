@@ -44,16 +44,33 @@ bot.callbackQuery("services", async (ctx) => {
   await showCategories(ctx);
 });
 
-// "Back to main menu" from services.
+// "Back to main menu" from services / contacts.
 bot.callbackQuery("main_menu", async (ctx) => {
   await ctx.answerCallbackQuery();
   const firstName = ctx.from?.first_name ?? msg.start.nameFallback;
   const keyboard = new InlineKeyboard()
     .text("🦷 Услуги и цены", "services").row()
+    .text("📍 Контакты и адрес", "contacts").row()
     .text(msg.btn.apply, "apply").row()
     .text(msg.btn.status, "status").row()
     .text(msg.btn.help, "help");
   await ctx.editMessageText(msg.start.welcome(firstName), { reply_markup: keyboard });
+});
+
+// Contacts page.
+bot.callbackQuery("contacts", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const text =
+    `📍 *Контакты и адрес*\n\n` +
+    `🏥 Клиника: DentaBot Demo\n` +
+    `📌 Адрес: Plac Defilad 1, Warszawa\n` +
+    `📞 Телефон: +48 123 456 789\n` +
+    `💬 WhatsApp: +48 123 456 789\n` +
+    `🕐 Режим работы: Пн-Вс 09:00 – 21:00`;
+  const keyboard = new InlineKeyboard()
+    .text("📋 Записаться на приём", "apply").row()
+    .text("⬅️ Назад", "main_menu");
+  await ctx.editMessageText(text, { reply_markup: keyboard, parse_mode: "Markdown" });
 });
 
 // Services menu — service list for a category.

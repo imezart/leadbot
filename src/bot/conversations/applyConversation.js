@@ -69,10 +69,13 @@ export async function applyConversation(conversation, ctx) {
   const cancelKeyboard = new InlineKeyboard().text(msg.btn.cancel, "cancel");
 
   // A service name may be pre-selected when entering from the services menu.
-  const pendingService = ctx.session.pendingService ?? null;
-  if (pendingService) {
-    ctx.session.pendingService = null;
-  }
+  // conversation.external() runs only on the live execution and caches the
+  // result for replays, keeping the conversation deterministic.
+  const pendingService = await conversation.external(() => {
+    const svc = ctx.session.pendingService ?? null;
+    if (svc) ctx.session.pendingService = null;
+    return svc;
+  });
 
   await ctx.reply(msg.apply.askName, { reply_markup: cancelKeyboard });
   const name = await waitForTextOrCancel(conversation);
