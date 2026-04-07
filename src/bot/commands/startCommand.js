@@ -9,8 +9,8 @@ import { InlineKeyboard } from "grammy";
 export async function startCommand(ctx) {
   const firstName = ctx.from?.first_name ?? "там";
   const keyboard = new InlineKeyboard()
-    .text("📋 Оставить заявку", "apply")
-    .text("📊 Статус заявки", "status")
+    .text("📋 Оставить заявку", "apply").row()
+    .text("📊 Статус заявки", "status").row()
     .text("❓ Помощь", "help");
 
   await ctx.reply(
