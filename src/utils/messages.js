@@ -1,4 +1,4 @@
-const lang = process.env.BOT_LANG === "ru" ? "ru" : "en";
+const lang = process.env.BOT_LANG === "en" ? "en" : "ru";
 
 const strings = {
   en: {
