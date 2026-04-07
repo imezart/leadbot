@@ -7,7 +7,9 @@ import { cancelCommand } from "./src/bot/commands/cancelCommand.js";
 import { statusCommand } from "./src/bot/commands/statusCommand.js";
 import { statsCommand } from "./src/bot/commands/statsCommand.js";
 import { applyConversation } from "./src/bot/conversations/applyConversation.js";
+import { callConversation } from "./src/bot/conversations/callConversation.js";
 import { showCategories, showServices, showServiceDetail } from "./src/bot/handlers/servicesHandler.js";
+import { buildBookingMessage, buildBookingKeyboard } from "./src/bot/handlers/bookingHandler.js";
 import { getServiceById } from "./src/data/services.js";
 import { msg } from "./src/utils/messages.js";
 
@@ -23,6 +25,7 @@ const bot = new Bot(token);
 bot.use(session({ initial: () => ({}) }));
 bot.use(conversations());
 bot.use(createConversation(applyConversation));
+bot.use(createConversation(callConversation));
 
 // Register commands.
 bot.command("start", startCommand);
@@ -33,9 +36,15 @@ bot.command("status", statusCommand);
 bot.command("stats", statsCommand);
 
 // Register inline keyboard button handlers.
+
+// "Записаться на приём" with no pre-selected service — show contact method selection.
 bot.callbackQuery("apply", async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.conversation.enter("applyConversation");
+  ctx.session.pendingService = null;
+  await ctx.editMessageText(
+    buildBookingMessage(null),
+    { reply_markup: buildBookingKeyboard(), parse_mode: "Markdown" }
+  );
 });
 
 // Services menu — categories list.
@@ -87,14 +96,42 @@ bot.callbackQuery(/^svc:([^:]+):([^:]+)$/, async (ctx) => {
   await showServiceDetail(ctx, catId, svcId);
 });
 
-// "Записаться на приём" from a service detail — pre-fill service name.
+// "Записаться на приём" from a service detail — store service, show contact method selection.
 bot.callbackQuery(/^svc_apply:([^:]+):([^:]+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
   const [, catId, svcId] = ctx.match;
   const svc = getServiceById(catId, svcId);
-  if (svc) {
-    ctx.session.pendingService = svc.name;
-  }
+  ctx.session.pendingService = svc?.name ?? null;
+  await ctx.editMessageText(
+    buildBookingMessage(svc?.name ?? null),
+    { reply_markup: buildBookingKeyboard(), parse_mode: "Markdown" }
+  );
+});
+
+// Contact method: call me back.
+bot.callbackQuery("bk_call", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.conversation.enter("callConversation");
+});
+
+// Contact method: write in Telegram.
+bot.callbackQuery("bk_tg", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  ctx.session.pendingService = null;
+  await ctx.editMessageText(
+    `💬 *Напишите нам в Telegram*\n\n` +
+    `Наш аккаунт: @dentabotdemo\n\n` +
+    `Мы ответим в течение нескольких минут.`,
+    {
+      reply_markup: new InlineKeyboard().text("⬅️ Назад в меню", "main_menu"),
+      parse_mode: "Markdown",
+    }
+  );
+});
+
+// Contact method: fill in the text form (existing apply conversation).
+bot.callbackQuery("bk_form", async (ctx) => {
+  await ctx.answerCallbackQuery();
   await ctx.conversation.enter("applyConversation");
 });
 

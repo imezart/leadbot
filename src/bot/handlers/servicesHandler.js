@@ -67,7 +67,8 @@ export async function showServiceDetail(ctx, catId, svcId) {
     `${cat.emoji} *${cat.name}*\n\n` +
     `*${svc.name}*\n\n` +
     `${svc.description}\n\n` +
-    `💰 Стоимость: *${svc.price} zł*`;
+    `💰 Стоимость: *${svc.price} zł*\n` +
+    `⏱ Длительность: *${svc.duration}*`;
 
   const keyboard = new InlineKeyboard()
     .text(BTN_APPLY, `svc_apply:${catId}:${svcId}`).row()
