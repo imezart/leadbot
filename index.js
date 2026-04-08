@@ -7,9 +7,8 @@ import { cancelCommand } from "./src/bot/commands/cancelCommand.js";
 import { statusCommand } from "./src/bot/commands/statusCommand.js";
 import { statsCommand } from "./src/bot/commands/statsCommand.js";
 import { applyConversation } from "./src/bot/conversations/applyConversation.js";
-import { callConversation } from "./src/bot/conversations/callConversation.js";
 import { showCategories, showServices, showServiceDetail } from "./src/bot/handlers/servicesHandler.js";
-import { buildBookingMessage, buildBookingKeyboard, handleTelegramContact } from "./src/bot/handlers/bookingHandler.js";
+import { buildBookingMessage, buildBookingKeyboard, handleTelegramContact, handlePhoneInput } from "./src/bot/handlers/bookingHandler.js";
 import { getServiceById } from "./src/data/services.js";
 import { msg } from "./src/utils/messages.js";
 
@@ -25,7 +24,6 @@ const bot = new Bot(token);
 bot.use(session({ initial: () => ({}) }));
 bot.use(conversations());
 bot.use(createConversation(applyConversation));
-bot.use(createConversation(callConversation));
 
 // Register commands.
 bot.command("start", startCommand);
@@ -108,11 +106,14 @@ bot.callbackQuery(/^svc_apply:([^:]+):([^:]+)$/, async (ctx) => {
   );
 });
 
-// Contact method: call me back.
+// Contact method: call me back — use session state machine instead of conversation.
 bot.callbackQuery("bk_call", async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.conversation.exit(); // clear any stale conversation state
-  await ctx.conversation.enter("callConversation");
+  ctx.session.awaitingPhone = true;
+  await ctx.reply(
+    "Введите ваш номер телефона в формате +48XXXXXXXXX — мы свяжемся с вами в ближайшее время.",
+    { reply_markup: new InlineKeyboard().text(msg.btn.cancel, "cancel") }
+  );
 });
 
 // Contact method: write in Telegram — notify admin, save lead, confirm to client.
@@ -129,6 +130,16 @@ bot.callbackQuery("bk_form", async (ctx) => {
   await ctx.conversation.enter("applyConversation");
 });
 
+// Cancel phone input — clear session state and show apply button.
+bot.callbackQuery("cancel", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  ctx.session.awaitingPhone = false;
+  ctx.session.pendingService = null;
+  await ctx.reply(msg.apply.cancelled, {
+    reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply"),
+  });
+});
+
 bot.callbackQuery("status", async (ctx) => {
   await ctx.answerCallbackQuery();
   await statusCommand(ctx);
@@ -137,6 +148,12 @@ bot.callbackQuery("status", async (ctx) => {
 bot.callbackQuery("help", async (ctx) => {
   await ctx.answerCallbackQuery();
   await helpCommand(ctx);
+});
+
+// Handle phone number input when awaitingPhone session flag is set.
+bot.on("message:text", async (ctx) => {
+  if (!ctx.session.awaitingPhone) return;
+  await handlePhoneInput(ctx);
 });
 
 // Global error handler — prevents unhandled errors from crashing the process.

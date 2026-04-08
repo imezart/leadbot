@@ -54,6 +54,56 @@ export function buildConfirmationKeyboard() {
 }
 
 /**
+ * Handles an incoming text message when ctx.session.awaitingPhone === true.
+ * Clears session state, notifies admin, saves lead, confirms to client.
+ *
+ * @param {import("grammy").Context} ctx
+ */
+export async function handlePhoneInput(ctx) {
+  const phone        = ctx.message.text;
+  const serviceName  = ctx.session.pendingService ?? null;
+  const username     = ctx.from?.username ?? null;
+  const userId       = ctx.from?.id ?? 0;
+  const userRef      = username ? `@${username}` : `ID ${userId}`;
+
+  ctx.session.awaitingPhone  = false;
+  ctx.session.pendingService = null;
+
+  const replyTemplate = serviceName
+    ? `Здравствуйте! Вы интересовались услугой ${serviceName} и оставили номер для обратного звонка. Готовы записать вас на удобное время. Когда вам удобно?`
+    : `Здравствуйте! Вы оставили номер телефона для обратного звонка. Готовы записать вас на удобное время. Когда вам удобно?`;
+
+  const adminButton = buildAdminReplyButton(username, replyTemplate);
+
+  try {
+    await ctx.api.sendMessage(
+      ADMIN_CHAT_ID,
+      `📞 Запрос на обратный звонок:\n\nКлиент: ${userRef}` +
+      (serviceName ? `\nУслуга: ${serviceName}` : "") +
+      `\nТелефон: ${phone}`,
+      adminButton ? { reply_markup: adminButton } : {}
+    );
+  } catch (err) {
+    console.error("Failed to notify admin (phone):", err);
+  }
+
+  await saveLead({
+    name: phone,
+    username: ctx.from?.username,
+    userId,
+    request: `Обратный звонок${serviceName ? `: ${serviceName}` : ""}`,
+  });
+
+  await ctx.reply(
+    `Спасибо! Мы свяжемся с вами по номеру *${phone}* в ближайшее время.`,
+    {
+      parse_mode: "Markdown",
+      reply_markup: new InlineKeyboard().text("⬅️ К услугам", "services"),
+    }
+  );
+}
+
+/**
  * Handles the "💬 Написать в Telegram" contact method:
  * - reads the pending service from session
  * - notifies admin with a reply-template button
