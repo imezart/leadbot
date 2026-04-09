@@ -58,8 +58,19 @@ export function buildConfirmationKeyboard() {
  *
  * @param {import("grammy").Context} ctx
  */
+const PHONE_RE = /^\+?[\d\s\-()\u2012\u2013]{7,20}$/;
+
 export async function handlePhoneInput(ctx) {
-  const phone        = ctx.message.text;
+  const phone = ctx.message.text;
+
+  if (!PHONE_RE.test(phone)) {
+    await ctx.reply(
+      "Пожалуйста, введите корректный номер телефона (например: +48 123 456 789).",
+      { reply_markup: new InlineKeyboard().text("⬅️ Назад", "bk_back") }
+    );
+    return;  // awaitingPhone stays true — user can retry
+  }
+
   const serviceName  = ctx.session.pendingService ?? null;
   const username     = ctx.from?.username ?? null;
   const userId       = ctx.from?.id ?? 0;
@@ -113,7 +124,8 @@ export async function handlePhoneInput(ctx) {
  */
 export async function handleTelegramContact(ctx) {
   const serviceName = ctx.session.pendingService ?? null;
-  ctx.session.pendingService = null;
+  // pendingService is intentionally kept in session so that "⬅️ Назад"
+  // from the confirmation screen can restore the correct booking header.
 
   const username = ctx.from?.username ?? null;
   const userId   = ctx.from?.id ?? 0;
@@ -145,6 +157,10 @@ export async function handleTelegramContact(ctx) {
 
   await ctx.editMessageText(
     `✅ Отлично! Ваш запрос принят.\n\nМы напишем вам в Telegram в ближайшее время.`,
-    { reply_markup: buildConfirmationKeyboard() }
+    {
+      reply_markup: new InlineKeyboard()
+        .text("⬅️ Назад", "bk_back").row()
+        .text("⬅️ К услугам", "services"),
+    }
   );
 }

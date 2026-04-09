@@ -1,9 +1,15 @@
+import { buildBookingMessage, buildBookingKeyboard } from "../handlers/bookingHandler.js";
+
 /**
  * Handles the /apply command.
- * Enters the multi-step lead collection conversation.
+ * Shows the contact method selection screen with no pre-selected service.
  *
  * @param {import("grammy").CommandContext<import("grammy").Context>} ctx
  */
 export async function applyCommand(ctx) {
-  await ctx.conversation.enter("applyConversation");
+  ctx.session.pendingService = null;
+  await ctx.reply(
+    buildBookingMessage(null),
+    { reply_markup: buildBookingKeyboard(), parse_mode: "Markdown" }
+  );
 }

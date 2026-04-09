@@ -9,11 +9,11 @@ const strings = {
       cancel: "❌ Cancel",
     },
     start: {
-      nameFallback: "there",
-      welcome: (firstName) =>
-        `Hello, ${firstName}! 👋 Welcome to LeadBot.\n\n` +
-        `I help small businesses collect requests right in Telegram. ` +
-        `Choose an action below to get started.`,
+      nameFallback: "",
+      welcome: () =>
+        `🦷 DentaBot Dental Clinic\n\n` +
+        `Modern dentistry in the city centre.\n` +
+        `Book an appointment — no queues, no phone calls.`,
     },
     help: {
       body:

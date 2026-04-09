@@ -1,12 +1,10 @@
 import { Bot, session, InlineKeyboard } from "grammy";
-import { conversations, createConversation } from "@grammyjs/conversations";
 import { startCommand } from "./src/bot/commands/startCommand.js";
 import { helpCommand } from "./src/bot/commands/helpCommand.js";
 import { applyCommand } from "./src/bot/commands/applyCommand.js";
 import { cancelCommand } from "./src/bot/commands/cancelCommand.js";
 import { statusCommand } from "./src/bot/commands/statusCommand.js";
 import { statsCommand } from "./src/bot/commands/statsCommand.js";
-import { applyConversation } from "./src/bot/conversations/applyConversation.js";
 import { showCategories, showServices, showServiceDetail } from "./src/bot/handlers/servicesHandler.js";
 import { buildBookingMessage, buildBookingKeyboard, handleTelegramContact, handlePhoneInput } from "./src/bot/handlers/bookingHandler.js";
 import { getServiceById } from "./src/data/services.js";
@@ -20,10 +18,7 @@ if (!token) {
 
 const bot = new Bot(token);
 
-// Session and conversations middleware (order matters).
 bot.use(session({ initial: () => ({}) }));
-bot.use(conversations());
-bot.use(createConversation(applyConversation));
 
 // Register commands.
 bot.command("start", startCommand);
@@ -104,38 +99,30 @@ bot.callbackQuery(/^svc_apply:([^:]+):([^:]+)$/, async (ctx) => {
   );
 });
 
-// Contact method: call me back — use session state machine instead of conversation.
+// Contact method: call me back — session state machine.
 bot.callbackQuery("bk_call", async (ctx) => {
   await ctx.answerCallbackQuery();
   ctx.session.awaitingPhone = true;
-  await ctx.reply(
+  await ctx.editMessageText(
     "Введите ваш номер телефона в формате +48XXXXXXXXX — мы свяжемся с вами в ближайшее время.",
-    { reply_markup: new InlineKeyboard().text(msg.btn.cancel, "cancel") }
+    { reply_markup: new InlineKeyboard().text("⬅️ Назад", "bk_back") }
+  );
+});
+
+// Back to contact method selection from phone prompt or bk_tg confirmation.
+bot.callbackQuery("bk_back", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  ctx.session.awaitingPhone = false;
+  await ctx.editMessageText(
+    buildBookingMessage(ctx.session.pendingService ?? null),
+    { reply_markup: buildBookingKeyboard(), parse_mode: "Markdown" }
   );
 });
 
 // Contact method: write in Telegram — notify admin, save lead, confirm to client.
 bot.callbackQuery("bk_tg", async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.conversation.exit();
   await handleTelegramContact(ctx);
-});
-
-// Contact method: fill in the text form (existing apply conversation).
-bot.callbackQuery("bk_form", async (ctx) => {
-  await ctx.answerCallbackQuery();
-  await ctx.conversation.exit();
-  await ctx.conversation.enter("applyConversation");
-});
-
-// Cancel phone input — clear session state and show apply button.
-bot.callbackQuery("cancel", async (ctx) => {
-  await ctx.answerCallbackQuery();
-  ctx.session.awaitingPhone = false;
-  ctx.session.pendingService = null;
-  await ctx.reply(msg.apply.cancelled, {
-    reply_markup: new InlineKeyboard().text(msg.btn.apply, "apply"),
-  });
 });
 
 bot.callbackQuery("status", async (ctx) => {
