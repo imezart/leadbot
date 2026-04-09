@@ -53,6 +53,28 @@ export function buildConfirmationKeyboard() {
 }
 
 /**
+ * Builds the text for the Telegram contact confirmation step.
+ *
+ * @param {string|null} serviceName
+ * @returns {string}
+ */
+export function buildTelegramConfirmMessage(serviceName) {
+  const serviceLine = serviceName ? `\n\nУслуга: *${serviceName}*` : "";
+  return `Отправить запрос на запись через Telegram?${serviceLine}`;
+}
+
+/**
+ * Builds the inline keyboard for the Telegram contact confirmation step.
+ *
+ * @returns {InlineKeyboard}
+ */
+export function buildTelegramConfirmKeyboard() {
+  return new InlineKeyboard()
+    .text("✅ Отправить", "bk_tg_confirm").row()
+    .text("⬅️ Назад", "bk_back");
+}
+
+/**
  * Handles an incoming text message when ctx.session.awaitingPhone === true.
  * Clears session state, notifies admin, saves lead, confirms to client.
  *
@@ -156,11 +178,7 @@ export async function handleTelegramContact(ctx) {
   });
 
   await ctx.editMessageText(
-    `✅ Отлично! Ваш запрос принят.\n\nМы напишем вам в Telegram в ближайшее время.`,
-    {
-      reply_markup: new InlineKeyboard()
-        .text("⬅️ Назад", "bk_back").row()
-        .text("⬅️ К услугам", "services"),
-    }
+    `✅ Запрос отправлен. Мы напишем вам в ближайшее время.`,
+    { reply_markup: new InlineKeyboard().text("⬅️ К услугам", "services") }
   );
 }

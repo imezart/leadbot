@@ -6,7 +6,7 @@ import { cancelCommand } from "./src/bot/commands/cancelCommand.js";
 import { statusCommand } from "./src/bot/commands/statusCommand.js";
 import { statsCommand } from "./src/bot/commands/statsCommand.js";
 import { showCategories, showServices, showServiceDetail } from "./src/bot/handlers/servicesHandler.js";
-import { buildBookingMessage, buildBookingKeyboard, handleTelegramContact, handlePhoneInput } from "./src/bot/handlers/bookingHandler.js";
+import { buildBookingMessage, buildBookingKeyboard, buildTelegramConfirmMessage, buildTelegramConfirmKeyboard, handleTelegramContact, handlePhoneInput } from "./src/bot/handlers/bookingHandler.js";
 import { getServiceById } from "./src/data/services.js";
 import { msg } from "./src/utils/messages.js";
 
@@ -119,8 +119,17 @@ bot.callbackQuery("bk_back", async (ctx) => {
   );
 });
 
-// Contact method: write in Telegram — notify admin, save lead, confirm to client.
+// Contact method: write in Telegram — show confirmation step before submitting.
 bot.callbackQuery("bk_tg", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(
+    buildTelegramConfirmMessage(ctx.session.pendingService ?? null),
+    { reply_markup: buildTelegramConfirmKeyboard(), parse_mode: "Markdown" }
+  );
+});
+
+// Confirmed: notify admin, save lead, show final confirmation.
+bot.callbackQuery("bk_tg_confirm", async (ctx) => {
   await ctx.answerCallbackQuery();
   await handleTelegramContact(ctx);
 });
