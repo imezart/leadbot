@@ -24,7 +24,6 @@ export function buildBookingKeyboard() {
   return new InlineKeyboard()
     .text("📞 Перезвоните мне", "bk_call").row()
     .text("💬 Написать в Telegram", "bk_tg").row()
-    .text("📋 Оставить заявку", "bk_form").row()
     .text("⬅️ К услугам", "services");
 }
 
