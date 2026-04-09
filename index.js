@@ -54,14 +54,12 @@ bot.callbackQuery("services", async (ctx) => {
 // "Back to main menu" from services / contacts.
 bot.callbackQuery("main_menu", async (ctx) => {
   await ctx.answerCallbackQuery();
-  const firstName = ctx.from?.first_name ?? msg.start.nameFallback;
   const keyboard = new InlineKeyboard()
     .text("🦷 Услуги и цены", "services").row()
-    .text("📍 Контакты и адрес", "contacts").row()
     .text(msg.btn.apply, "apply").row()
     .text(msg.btn.status, "status").row()
-    .text(msg.btn.help, "help");
-  await ctx.editMessageText(msg.start.welcome(firstName), { reply_markup: keyboard });
+    .text("📍 Контакты и адрес", "contacts");
+  await ctx.editMessageText(msg.start.welcome(), { reply_markup: keyboard });
 });
 
 // Contacts page.
